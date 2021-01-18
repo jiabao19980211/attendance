@@ -7,6 +7,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import datetime
 from datetime import datetime
+import win32api
 
 bgs_config = pd.read_excel("config.xlsx", 'Sheet3', header=4, engine='openpyxl')
 cx_config = pd.read_excel("config.xlsx", 'Sheet2', header=4, engine='openpyxl')
@@ -23,72 +24,104 @@ class MainGUI(QtWidgets.QMainWindow):
         self.main_widget_layout = QtWidgets.QGridLayout()  # 选取布局为网格布局(多行多列)
         self.main_widget.setLayout(self.main_widget_layout)  # 设置布局
         # 设置部件
-        self.input = QtWidgets.QLineEdit()  # 文本编辑框1
-        self.input_btn = QtWidgets.QPushButton("选择文件(仅支持xlsx文件)")  # 按钮1及名称
-        self.output = QtWidgets.QLineEdit()  # 文本编辑框2
-        self.output_btn = QtWidgets.QPushButton("选择输出文件夹")  # 按钮2及名称
-        self.show_result = QtWidgets.QListWidget()  # 列表控件
-        self.run = QtWidgets.QPushButton("执行转换")  # 按钮3及名称
+        self.input = QtWidgets.QLineEdit("请确保输入文件路径和名字正确且文件存在。选择文件后自动替换该语句")  # 文本编辑框1
+        self.btn_Choose_Input_File = QtWidgets.QPushButton("选择文件(仅支持xlsx文件)")  # 按钮1及名称
+        self.output = QtWidgets.QLineEdit("请确保输出文件路径正确且存在。选择路径后自动替换该语句")  # 文本编辑框2
+        self.btn_Choose_Onput_Directory = QtWidgets.QPushButton("选择输出文件夹")  # 按钮2及名称
+        self.editBox_Information_Display_Area = QtWidgets.QListWidget()  # 列表控件
+        self.btn_Execution = QtWidgets.QPushButton("执行转换")  # 按钮3及名称
         # 部件的位置设置
         self.main_widget_layout.addWidget(self.input, 0, 0, 1, 2)  # 文本编辑框1放在第1行1列，占用1行2列
-        self.main_widget_layout.addWidget(self.input_btn, 0, 2, 1, 1)  # 按钮1放在第1行第3列，占用1行1列
+        self.main_widget_layout.addWidget(self.btn_Choose_Input_File, 0, 2, 1, 1)  # 按钮1放在第1行第3列，占用1行1列
         self.main_widget_layout.addWidget(self.output, 1, 0, 1, 2)
-        self.main_widget_layout.addWidget(self.output_btn, 1, 2, 1, 1)
-        self.main_widget_layout.addWidget(self.run, 2, 2, 1, 1)
-        self.main_widget_layout.addWidget(self.show_result, 3, 0, 3, 3)
+        self.main_widget_layout.addWidget(self.btn_Choose_Onput_Directory, 1, 2, 1, 1)
+        self.main_widget_layout.addWidget(self.btn_Execution, 2, 2, 1, 1)
+        self.main_widget_layout.addWidget(self.editBox_Information_Display_Area, 3, 0, 3, 3)
 
         self.setCentralWidget(self.main_widget)  # 设置QMainWindow的中心窗口
 
-        self.input_btn.clicked.connect(self.Choice_file_input)  # 将"选择输入文件夹"按钮绑定Choice_dir_input函数
-        self.output_btn.clicked.connect(self.Choice_dir_output)  # 将"选择输出文件夹"按钮绑定Choice_dir_output函数
-        self.run.clicked.connect(self.Summary_data)  # “执行汇总”按钮绑定Summary_data函数
-        self.show_result.itemClicked.connect(self.show_select_item)
+        self.btn_Choose_Input_File.clicked.connect(self.Fun_Choice_Input_File)  # 将"选择输入文件夹"按钮绑定Choice_dir_input函数
+        self.btn_Choose_Onput_Directory.clicked.connect(
+            self.Fun_Choice_Output_Directory)  # 将"选择输出文件夹"按钮绑定Fun_Choice_Output_Directory函数
+        self.btn_Execution.clicked.connect(self.Fun_On_BtnClick_Execuation)  # “执行汇总”按钮绑定Fun_On_BtnClick_Execuation函数
+        self.editBox_Information_Display_Area.itemClicked.connect(self.Fun_show_select_item)
 
-    def show_select_item(self):
-        self.show_result.addItem('功能有待完善')
+    def Fun_show_select_item(self, item):
+        if "不合法" in item.text():
 
+            QMessageBox.information(self, "ListWidget", "请根据提示重新输入内容●●●●●●" + "系统提示: " + item.text())
+        elif "程序" in item.text():
+            QMessageBox.information(self, "ListWidget", "这是一条系统消息●●●●●●" + "系统提示: " + item.text().replace("-", ""))
+        elif "输入" in item.text():  # 打开该次程序执行中使用的输入文件
+            win32api.ShellExecute(0, 'open', item.text().replace("输入地址为：", ""), '', '', 1)
+        elif "输出" in item.text():  # 打开该次程序执行中使用的输出文件夹
+            os.startfile(item.text().replace("输出地址为：", ""))
+        elif "文件1为：" in item.text():  # 打开这一次执行程序所产生的输出文件1
+            win32api.ShellExecute(0, 'open', self.editBox_Information_Display_Area.item(
+                self.editBox_Information_Display_Area.currentRow() - 1).text().replace("输出地址为：", "") + "/" + item.text().replace("文件1为：", ""), '', '', 1)
+        elif "文件2为：" in item.text():  # 打开这一次执行程序所产生的输出文件2
+            win32api.ShellExecute(0, 'open', self.editBox_Information_Display_Area.item(
+                self.editBox_Information_Display_Area.currentRow() - 2).text().replace("输出地址为：","") + "/" + item.text().replace("文件2为：", ""), '', '', 1)
+        else:
+            QMessageBox.information(self, "ListWidget", "我是一条分割线●●●●●●" + "系统提示: " + item.text())
+        print(item.text())
 
+    def Fun_Choice_Input_File(self):
+        p_str_InputFileName, p_str_InputFileType = QFileDialog.getOpenFileName(self, "选取文件", "D:\\", "*.xlsx")
+        self.input.setText(p_str_InputFileName)
 
-    def Choice_file_input(self):
-        filename, filetype = QFileDialog.getOpenFileName(self, "选取文件", "D:\\", "*.xlsx")
-        self.input.setText(filename)
+    def Fun_Choice_Output_Directory(self):
+        p_str_OutputFilePath = QtWidgets.QFileDialog.getExistingDirectory(self, "请选择文件夹路径", "D:\\")
+        self.output.setText(p_str_OutputFilePath)
 
-    def Choice_dir_output(self):
-        dir_path = QtWidgets.QFileDialog.getExistingDirectory(self, "请选择文件夹路径", "D:\\")
-        self.output.setText(dir_path)
+    int_record_times = 0
 
-    def Summary_data(self):
-        urlinput = self.input.text()
-        urloutput = self.output.text()
-        strInputFileName = os.path.basename(urlinput)[0:-5]  # urlinput.split()#/我想我应该是file吧.xlsx#拿到输入文件名
-        df = pd.read_excel(urlinput, engine='openpyxl')
-        df['len'] = df.dropna(subset=['时间'])['时间'].str.split(' ').apply(len)
-        df2 = df[df['len'] >= 1]
-        bgs_df = df2[df2['len'] < 4]
-        cx_df = df2[df2['len'] >= 4]
-        bgs_df['状态'], bgs_df['平时上班'], bgs_df['平时加班'], bgs_df['迟到'] = zip(*bgs_df['时间'].apply(bgs))
-        cx_df['状态'], cx_df['平时上班'], cx_df['平时加班'], cx_df['迟到'] = zip(*cx_df['时间'].apply(cx))
-        bgs_df['平时上班'] = bgs_df['平时上班'] / 3600
-        bgs_df['平时加班'] = bgs_df['平时加班'] / 3600
-        bgs_df['迟到'] = bgs_df['迟到'] / 60
-        cx_df['平时上班'] = cx_df['平时上班'] / 3600
-        cx_df['平时加班'] = cx_df['平时加班'] / 3600
-        cx_df['迟到'] = cx_df['迟到'] / 60
+    def Fun_On_BtnClick_Execuation(self):
+        str_InputFile_Url = self.input.text()
+        str_Output_Dir = self.output.text()
+        if os.path.isfile(str_InputFile_Url) and os.path.isdir(str_Output_Dir):  # 判断输入内容合法性
+            strInputFileName = os.path.basename(str_InputFile_Url)[0:-5]
+            data_stream_InputFile = pd.read_excel(str_InputFile_Url, engine='openpyxl')
+            data_stream_InputFile['len'] = data_stream_InputFile.dropna(subset=['时间'])['时间'].str.split(' ').apply(len)
+            data_stream_InputFile2 = data_stream_InputFile[data_stream_InputFile['len'] >= 1]
+            bgs_data_stream_InputFile = data_stream_InputFile2[data_stream_InputFile2['len'] < 4]
+            cx_data_stream_InputFile = data_stream_InputFile2[data_stream_InputFile2['len'] >= 4]
+            bgs_data_stream_InputFile['状态'], bgs_data_stream_InputFile['平时上班'], bgs_data_stream_InputFile['平时加班'], \
+            bgs_data_stream_InputFile['迟到'] = zip(*bgs_data_stream_InputFile['时间'].apply(bgs))
+            cx_data_stream_InputFile['状态'], cx_data_stream_InputFile['平时上班'], cx_data_stream_InputFile['平时加班'], \
+            cx_data_stream_InputFile['迟到'] = zip(*cx_data_stream_InputFile['时间'].apply(cx))
+            bgs_data_stream_InputFile['平时上班'] = bgs_data_stream_InputFile['平时上班'] / 3600
+            bgs_data_stream_InputFile['平时加班'] = bgs_data_stream_InputFile['平时加班'] / 3600
+            bgs_data_stream_InputFile['迟到'] = bgs_data_stream_InputFile['迟到'] / 60
+            cx_data_stream_InputFile['平时上班'] = cx_data_stream_InputFile['平时上班'] / 3600
+            cx_data_stream_InputFile['平时加班'] = cx_data_stream_InputFile['平时加班'] / 3600
+            cx_data_stream_InputFile['迟到'] = cx_data_stream_InputFile['迟到'] / 60
 
-        dt = datetime.now().strftime("%Y%m%d%H%M%S%f")  # 创建一个datetime类
-        time = str(dt)
+            time = str(datetime.now().strftime("%Y%m%d%H%M%S%f"))  # 创建一个datetime类
 
-        str1 = urloutput + "/" + strInputFileName + time
-        print(str1)
-        bgs_df.to_excel(str1 + "办公室人员统计.xlsx", 'w+')
-        cx_df.to_excel(str1 + "产线人员统计.xlsx", 'w+')
+            str_output_file_path = str_Output_Dir + "/" + strInputFileName + time
+            bgs_data_stream_InputFile.to_excel(str_output_file_path + "办公室人员统计.xlsx", 'w+')
+            cx_data_stream_InputFile.to_excel(str_output_file_path + "产线人员统计.xlsx", 'w+')
 
-        self.show_result.addItem("------------------------------------------")
-        self.show_result.addItem("文件生成成功！！")
-        self.show_result.addItem("输入地址为：" + urlinput)
-        self.show_result.addItem("输出地址为：" + urloutput)
-        self.show_result.addItem("文件1为：" + strInputFileName + time + "办公室人员统计.xlsx")
-        self.show_result.addItem("文件2为：" + strInputFileName + time + "产线人员统计.xlsx")
+            MainGUI.int_record_times = MainGUI.int_record_times + 1
+
+            self.editBox_Information_Display_Area.insertItem(0,
+                                                             "---------------------------------------------------------------------------------------")
+            self.editBox_Information_Display_Area.insertItem(0, "文件2为：" + strInputFileName + time + "产线人员统计.xlsx")
+            self.editBox_Information_Display_Area.insertItem(0, "文件1为：" + strInputFileName + time + "办公室人员统计.xlsx")
+            self.editBox_Information_Display_Area.insertItem(0, "输出地址为：" + str_Output_Dir)
+            self.editBox_Information_Display_Area.insertItem(0, "输入地址为：" + str_InputFile_Url)
+            self.editBox_Information_Display_Area.insertItem(0, "程序执行完成，并且文件生成成功！！")
+            self.editBox_Information_Display_Area.insertItem(0, "---------------程序第" + str(
+                MainGUI.int_record_times) + "次执行----------------")
+
+        else:  # 输入文件或者路径不合法的处理方法
+            if os.path.isfile(str_InputFile_Url) != True:
+                self.editBox_Information_Display_Area.insertItem(0, "输入文件路径不合法，或者文件不存在，请重新输入！！！")
+            elif os.path.isdir(str_Output_Dir) != True:
+                self.editBox_Information_Display_Area.insertItem(0, "输出文件路径不合法请重新输入！！！")
+            else:
+                self.editBox_Information_Display_Area.insertItem(0, "出现问题了，清确认输入")
 
 
 def cat(lis_s, cats, how="()"):
@@ -194,7 +227,7 @@ def bgs_late(a, b, c, d, e, f, value):
         return (b[0] - t('8:50')).seconds
 
 
-def cx(s):
+def cx(s):  # chanxian
     a, b, c, d, e = cat(s.split(' '), '0:00 8:31 12:30 13:31 18:00 23:59'.split(' '), how='[)')
     al, bl, cl, dl, el = [len(i) for i in [a, b, c, d, e]]
     ab, bb, cb, db, eb = [0 if len(i) == 0 else 1 for i in [a, b, c, d, e]]
@@ -246,8 +279,6 @@ def cx_overtime(a, b, c, d, e, value):
 
 
 def cx_late(a, b, c, d, e, value):
-    # print(a, b, c, d, e)
-    # print(value)
     if value == 0:
         return 0
     elif value == '(12:30-8:30)+(d0-13:30)':
