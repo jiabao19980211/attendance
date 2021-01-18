@@ -79,7 +79,7 @@ class MainGUI(QtWidgets.QMainWindow):
     def Fun_On_BtnClick_Execuation(self):
         str_InputFile_Url = self.input.text()
         str_Output_Dir = self.output.text()
-        if os.path.isfile(str_InputFile_Url) and os.path.isdir(str_Output_Dir):  # 判断输入内容合法性
+        if os.path.isfile(str_InputFile_Url) and os.path.isdir(str_Output_Dir):  # 判断输入内容是否是合法的
             strInputFileName = os.path.basename(str_InputFile_Url)[0:-5]
             data_stream_InputFile = pd.read_excel(str_InputFile_Url, engine='openpyxl')
             data_stream_InputFile['len'] = data_stream_InputFile.dropna(subset=['时间'])['时间'].str.split(' ').apply(len)
