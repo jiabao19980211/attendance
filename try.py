@@ -119,14 +119,13 @@ class MainGUI(QtWidgets.QMainWindow):
 
                 MainGUI.int_right_record_times = MainGUI.int_right_record_times + 1
 
-                self.editBox_Information_Display_Area.insertItem(0,
-                                                                 "---------------------------------------------------------------------------------------")
+                self.editBox_Information_Display_Area.insertItem(0, "-"*62)
                 self.editBox_Information_Display_Area.insertItem(0, "文件2为：" + strInputFileName + time + "产线人员统计.xlsx")
                 self.editBox_Information_Display_Area.insertItem(0, "文件1为：" + strInputFileName + time + "办公室人员统计.xlsx")
                 self.editBox_Information_Display_Area.insertItem(0, "输出地址为：" + str_Output_Dir)
                 self.editBox_Information_Display_Area.insertItem(0, "输入地址为：" + str_InputFile_Url)
                 self.editBox_Information_Display_Area.insertItem(0, "程序执行完成，并且文件生成成功！！")
-                self.editBox_Information_Display_Area.insertItem(0, "---------------程序第" + str(MainGUI.int_right_record_times) + "次执行----------------")
+                self.editBox_Information_Display_Area.insertItem(0, "-"*12+"程序第" + str(MainGUI.int_right_record_times) + "次执行"+"-"*12)
                 self.editBox_catalog_area.insertItem(0, "程序第" + str(MainGUI.int_right_record_times) + "次执行!")
             except:
                 MainGUI.int_wrong_record_times = MainGUI.int_wrong_record_times + 1
@@ -179,6 +178,8 @@ def list_FllRegisttimeIntoReftimelist(lis_s, cats, how="()"):
 
 def Office(Registtimelist):
     list_span_1,list_span_2, list_span_3, list_span_4, list_span_5, list_span_6 = list_FllRegisttimeIntoReftimelist(Registtimelist.split(' '), '0:00 8:51 12:20 13:41 18:00 18:31 23:59'.split(' '), how='[)')
+    print(list_span_1)
+
     IsExistSpan1, IsExistSpan2,IsExistSpan3, IsExistSpan4, IsExistSpan5, IsExistSpan6 = [0 if len(item) == 0 else 1 for item in [list_span_1,list_span_2, list_span_3, list_span_4, list_span_5, list_span_6]]
 
     list_NumberValue = Office_config[
@@ -294,7 +295,7 @@ def ServiceLine_work(list_span_1,list_span_2, list_span_3, list_span_4, list_spa
 def ServiceLine_overtime(list_span_1,list_span_2, list_span_3, list_span_4, list_span_5, value):
     if value == 0:
         return 0
-    elif value == 'e1-18:00':
+    elif value == 'e_last-18:00':
         return (list_span_5[-1] - t('18:00')).seconds
     else:
         raise ValueError('加班计算异常')
